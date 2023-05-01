@@ -1,12 +1,13 @@
 import pandas as pd
 import matplotlib.pyplot as plt
+import numpy as np
+from scipy.signal import lfilter
 
 def tratar_arquivo_mental(arquivo:str):
 	caminho = f"data/mental/{arquivo}"
-	columns = ['Time and date','EEG Fp1','EEG Fp2','EEG F3','EEG F4','EEG F7',
-	    'EEG F8','EEG T3','EEG T4','EEG C3','EEG C4','EEG T5','EEG T6','EEG P3',
-		'EEG P4','EEG O1','EEG O2','EEG Fz','EEG Cz','EEG Pz','EEG A2-A1',
-		'ECG ECG','EDF Annotations',]
+	columns = ['Time and date','Fp1','Fp2','F3','F4','F7','F8','T3','T4','C3',
+	    'C4','T5','T6','P3','P4','O1','O2','Fz','Cz','Pz','A2-A1','ECG ECG',
+		'EDF Annotations',]
 	dados = pd.read_csv(caminho, header=None, names=columns, skiprows=2)
 	# print(dados.head(20))
 	for idx in range(len(dados)):
@@ -43,7 +44,7 @@ def ler_tratado_motor(arquivo:str) -> pd.DataFrame:
 def plot_all_columns(data:pd.DataFrame):
 	# plot all columns
 	plt.figure(figsize=(20, 10))
-	for i in range(1,len(data.columns)):
+	for i in range(len(data.columns)):
 		plt.subplot(len(data.columns), 1, i+1)
 		name = data.columns[i]
 		plt.plot(data[name])
@@ -53,12 +54,33 @@ def plot_all_columns(data:pd.DataFrame):
 
 def main():
 	# tratar_arquivo_mental('subject5-2.csv')
-	# data = ler_tratado_mental('subject5-2-tratado.csv')
+	# data = ler_tratado_mental('subject0-2-tratado.csv')
 
 	# plot_all_columns(data)
 
 	# tratar_arquivo_motor('S1-1.csv')
-	dados = ler_tratado_motor('S1-1-tratado.csv')
+	data = ler_tratado_motor('S1-1-tratado.csv')
+
+	dados_calculados = pd.DataFrame()
+	dados_calculados['Time and date'] = data['Time and date']
+	dados_calculados['Fp1 - F3'] = data['Fp1'] - data['F3']
+	dados_calculados['F3 - C3'] = data['F3'] - data['C3']
+	dados_calculados['Fz - Cz'] = data['Fz'] - data['Cz']
+	dados_calculados['Cz - Pz'] = data['Cz'] - data['Pz']
+	dados_calculados['Fp2 - F4'] = data['Fp2'] - data['F4']
+	dados_calculados['F4 - C4'] = data['F4'] - data['C4']
+
+	dados_calculados.drop('Time and date', inplace=True, axis=1)
+
+	for column in dados_calculados.columns:
+		signal = dados_calculados[column]
+		n = 50
+		b = [1.0 / n] * n
+		a = 1
+		dados_calculados[column] = lfilter(b, a, signal)
+
+	plot_all_columns(dados_calculados)
+
 
 if __name__ == '__main__':
 	main()
