@@ -1,7 +1,6 @@
 import pandas as pd
 import matplotlib.pyplot as plt
-import numpy as np
-from scipy.signal import lfilter
+from study import Study
 
 def tratar_arquivo_mental(arquivo:str):
 	caminho = f"data/mental/{arquivo}"
@@ -49,37 +48,15 @@ def plot_all_columns(data:pd.DataFrame):
 		name = data.columns[i]
 		plt.plot(data[name])
 		plt.title(name, y=0, loc='right')
-	plt.show()
 
 
 def main():
-	# tratar_arquivo_mental('subject5-2.csv')
-	# data = ler_tratado_mental('subject0-2-tratado.csv')
-
-	# plot_all_columns(data)
+	# tratar_arquivo_mental('S5-2.csv')
 
 	# tratar_arquivo_motor('S1-1.csv')
-	data = ler_tratado_motor('S1-1-tratado.csv')
 
-	dados_calculados = pd.DataFrame()
-	dados_calculados['Time and date'] = data['Time and date']
-	dados_calculados['Fp1 - F3'] = data['Fp1'] - data['F3']
-	dados_calculados['F3 - C3'] = data['F3'] - data['C3']
-	dados_calculados['Fz - Cz'] = data['Fz'] - data['Cz']
-	dados_calculados['Cz - Pz'] = data['Cz'] - data['Pz']
-	dados_calculados['Fp2 - F4'] = data['Fp2'] - data['F4']
-	dados_calculados['F4 - C4'] = data['F4'] - data['C4']
-
-	dados_calculados.drop('Time and date', inplace=True, axis=1)
-
-	for column in dados_calculados.columns:
-		signal = dados_calculados[column]
-		n = 50
-		b = [1.0 / n] * n
-		a = 1
-		dados_calculados[column] = lfilter(b, a, signal)
-
-	plot_all_columns(dados_calculados)
+	study = Study.load()
+	print(study)
 
 
 if __name__ == '__main__':
