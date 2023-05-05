@@ -25,7 +25,7 @@ class DataSet:
 	"""
 	def __init__(self, directory:str, subfolder:str, file:str) -> None:
 		self.id = int(file.split('-')[1])
-		self.data = self.add_data(directory, subfolder, file)
+		self.data = self.add_data(directory, subfolder, file, derivatives=False, filter=True)
 
 	def __str__(self) -> str:
 		"""
@@ -79,10 +79,20 @@ class DataSet:
 		calc = pd.DataFrame()
 		calc['Fp1 - F3'] = treated['Fp1'] - treated['F3']
 		calc['F3 - C3'] = treated['F3'] - treated['C3']
+		calc['Fp1 - F7'] = treated['Fp1'] - treated['F7']
+		try:
+			calc['F7 - T7'] = treated['F7'] - treated['T7']
+		except KeyError:
+			calc['F7 - T3'] = treated['F7'] - treated['T3']
 		calc['Fz - Cz'] = treated['Fz'] - treated['Cz']
 		calc['Cz - Pz'] = treated['Cz'] - treated['Pz']
 		calc['Fp2 - F4'] = treated['Fp2'] - treated['F4']
 		calc['F4 - C4'] = treated['F4'] - treated['C4']
+		calc['Fp2 - F8'] = treated['Fp2'] - treated['F8']
+		try:
+			calc['F8 - T8'] = treated['F8'] - treated['T8']
+		except KeyError:
+			calc['F8 - T4'] = treated['F8'] - treated['T4']
 		if 'filter' not in kwargs or kwargs['filter']:
 			calc = self.filter(calc)
 		if 'derivatives' in kwargs and kwargs['derivatives']:

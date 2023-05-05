@@ -30,8 +30,9 @@ class Test:
 		Adds all subjects in the directory selected for the test.
 		"""
 		files = os.listdir(f"{directory}/{subfolder}")
-		subjects = set([file.split('-')[0] for file in files])
-		subjects = [Subject(directory, subfolder, subject) for subject in subjects]
+		subjects = list(set([int(file.split('-')[0][1:]) for file in files]))
+		subjects.sort()
+		subjects = [Subject(directory, subfolder, f"S{subject}") for subject in subjects]
 		return subjects
 	
 	def list_subjects(self) -> None:
@@ -40,3 +41,11 @@ class Test:
 		"""
 		for subject in self.subjects:
 			print(subject)
+
+if __name__ == '__main__':
+	directory = 'treated_data'
+	subfolder = 'motor_movement'
+	files = os.listdir(f"{directory}/{subfolder}")
+	subjects = list(set([int(file.split('-')[0][1:]) for file in files]))
+	subjects.sort()
+	print(subjects)
