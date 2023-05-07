@@ -2,6 +2,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from study import Study
 
+
 def tratar_arquivo_mental(arquivo:str):
 	caminho = f"data/mental/{arquivo}"
 	columns = ['Time and date','Fp1','Fp2','F3','F4','F7','F8','T3','T4','C3',
@@ -13,6 +14,7 @@ def tratar_arquivo_mental(arquivo:str):
 		dados['Time and date'].iat[idx] = dados['Time and date'].iat[idx][2:-2]
 	# print(dados.head(20))
 	dados.to_csv(f"treated_data/mental/{arquivo[:-4]}-tratado.csv", index=False)
+
 
 def ler_tratado_mental(arquivo:str) -> pd.DataFrame:
 	caminho = f"treated_data/mental/{arquivo}"
@@ -43,8 +45,10 @@ def main():
 
 	study = Study()
 	# study.tests[1].list_subjects()
-	study.tests[1].subjects[0].data_sets[0].data.plot(subplots=True, grid=True)
+	# study.tests[1].subjects[0].data_sets[0].data.plot(subplots=True, grid=True)
+	study.tests[1].get_subject(8).data_sets[0].data.plot(subplots=True, grid=True)
 	plt.show()
+	print(study.tests[1].get_subject_ids())
 
 
 if __name__ == '__main__':

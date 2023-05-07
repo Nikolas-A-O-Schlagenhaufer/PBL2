@@ -24,6 +24,18 @@ class Test:
 		Returns a string representation of the test.
 		"""
 		return f"Test {self.name} with {len(self.subjects)} subject(s)"
+	
+	def get_subject_ids(self) -> list:
+		"""
+		Returns a list containing the ids of all subjects in the test.
+		"""
+		return [subject.id for subject in self.subjects]
+	
+	def get_subject(self, subject:int) -> Subject:
+		"""
+		Return the subject with the given number.
+		"""
+		return self.subjects[self.get_subject_ids().index(subject)]
 
 	def add_subjects(self, directory:str, subfolder:str) -> list:
 		"""
