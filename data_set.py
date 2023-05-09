@@ -25,7 +25,7 @@ class DataSet:
 	"""
 	def __init__(self, directory:str, subfolder:str, file:str) -> None:
 		self.id = int(file.split('-')[1])
-		self.data = self.add_data(directory, subfolder, file, derivatives=False, filter=True)
+		self.data = self.add_data(directory, subfolder, file, derivatives=True, filter=True)
 
 	def __str__(self) -> str:
 		"""
@@ -55,6 +55,7 @@ class DataSet:
 			de[f"d_{column}"] = data[column].diff()
 		data = pd.concat([data, de], axis=1)
 		data = self.filter(data)
+		data = data.dropna()
 		return data
 	
 	def add_data(self, directory:str, subfolder:str, file:str, **kwargs) -> pd.DataFrame:
@@ -97,6 +98,7 @@ class DataSet:
 			calc = self.filter(calc)
 		if 'derivatives' in kwargs and kwargs['derivatives']:
 			calc = self.add_derivatives(calc)
+		calc = calc[(calc.T != 0).any()]
 		return calc
 	
 if __name__ == "__main__":

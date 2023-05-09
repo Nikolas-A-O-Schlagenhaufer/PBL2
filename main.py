@@ -1,55 +1,72 @@
 import pandas as pd
+import numpy as np
 import matplotlib.pyplot as plt
 from study import Study
+from intervalos import intervalos
+from sklearn.model_selection import train_test_split
+from sklearn.tree import DecisionTreeClassifier as DTC
+from sklearn.metrics import f1_score
+from alive_progress import alive_bar
+from joblib import dump, load
 
 
-def tratar_arquivo_mental(arquivo:str):
-	caminho = f"data/mental/{arquivo}"
-	columns = ['Time and date','Fp1','Fp2','F3','F4','F7','F8','T3','T4','C3',
-	    'C4','T5','T6','P3','P4','O1','O2','Fz','Cz','Pz','A2-A1','ECG ECG',
-		'EDF Annotations',]
-	dados = pd.read_csv(caminho, header=None, names=columns, skiprows=2)
-	# print(dados.head(20))
-	for idx in range(len(dados)):
-		dados['Time and date'].iat[idx] = dados['Time and date'].iat[idx][2:-2]
-	# print(dados.head(20))
-	dados.to_csv(f"treated_data/mental/{arquivo[:-4]}-tratado.csv", index=False)
+def generate_decision_tree() -> None:
+	"""
+	Generates a decision tree classifier model and saves it to a file.
+	"""
+	study = Study()
+
+	data = pd.DataFrame()
+	subjects = study.tests[1].get_subject_ids()
+	for subject in subjects:
+		subject_data = study.tests[1].get_subject(subject).data_sets[0].data
+		subject_intervals = intervalos.get(subject)
+		targets = np.zeros(len(subject_data))
+		for interval in subject_intervals:
+			targets[interval[0]:interval[1]] = 1
+		subject_data['targets'] = targets
+		data = pd.concat([data, subject_data], ignore_index=True)
+
+	list_f1 = []
+	times = 50
+	with alive_bar(times) as bar:
+		for i in range(times):
+			X = data.drop('targets', axis=1).values
+			y = data['targets'].values
+			X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=i)
+			clf = DTC(random_state=i)
+			clf.fit(X_train, y_train)
+			y_pred = clf.predict(X_test)
+			list_f1.append(f1_score(y_test, y_pred))
+			bar()
+	
+	f1 = np.max(list_f1)
+	max_f1 = np.argmax(list_f1)
+	print(f"Highest F1-score: {f1}, on random state {max_f1}")
+	X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=i)
+	clf = DTC(random_state=max_f1)
+	clf.fit(X_train, y_train)
+	dump(clf, 'decision_tree.joblib')
 
 
-def ler_tratado_mental(arquivo:str) -> pd.DataFrame:
-	caminho = f"treated_data/mental/{arquivo}"
-	dados = pd.read_csv(caminho, parse_dates=['Time and date'])
-	return dados
-
-
-def ler_tratado_motor(arquivo:str) -> pd.DataFrame:
-	caminho = f"treated_data/motor_movement/{arquivo}"
-	dados = pd.read_csv(caminho, parse_dates=['Time and date'])
-	return dados
-
-
-def plot_all_columns(data:pd.DataFrame):
-	# plot all columns
-	plt.figure(figsize=(20, 10))
-	for i in range(len(data.columns)):
-		plt.subplot(len(data.columns), 1, i+1)
-		name = data.columns[i]
-		plt.plot(data[name])
-		plt.title(name, y=0, loc='right')
+def get_decision_tree() -> DTC:
+	"""
+	Returns the decision tree classifier model.
+	"""
+	return load('decision_tree.joblib')
 
 
 def main():
-	# tratar_arquivo_mental('S5-2.csv')
-
-	# tratar_arquivo_motor('S5-1.csv')
-
+	# Rodar a seguinte função para gerar um novo modelo de árvore de decisão,
+	# caso haja a necessidade de utilizar mais dados para o treinamento.
+	# generate_decision_tree()
+	
 	study = Study()
-	# study.tests[1].list_subjects()
-	# study.tests[1].subjects[0].data_sets[0].data.plot(subplots=True, grid=True)
-	study.tests[1].get_subject(8).data_sets[0].data.plot(subplots=True, grid=True)
+
+	data = study.tests[1].get_subject(61).data_sets[0].data
+	data.plot(subplots=True, grid=True)
 	plt.show()
-	print(study.tests[1].get_subject_ids())
-
-
+	
+	
 if __name__ == '__main__':
 	main()
